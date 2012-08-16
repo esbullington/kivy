@@ -56,7 +56,8 @@ class Image(Widget):
     source = StringProperty(None)
     '''Filename / source of your image.
 
-    :data:`source` a :class:`~kivy.properties.StringProperty`, default to None.
+    :data:`source` is a :class:`~kivy.properties.StringProperty`, default to
+    None.
     '''
 
     texture = ObjectProperty(None, allownone=True)
@@ -184,7 +185,6 @@ class Image(Widget):
 
         return iw, ih
 
-
     norm_image_size = AliasProperty(get_norm_image_size, None, bind=(
         'texture', 'size', 'image_ratio', 'allow_stretch'))
     '''Normalized image size within the widget box.
@@ -201,7 +201,7 @@ class Image(Widget):
         super(Image, self).__init__(**kwargs)
         self.bind(source=self.texture_update,
                   mipmap=self.texture_update)
-        if self.source is not None:
+        if self.source:
             self.texture_update()
 
     def texture_update(self, *largs):

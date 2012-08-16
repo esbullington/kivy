@@ -52,8 +52,8 @@ def _on_gst_message(bus, message):
     # log all error messages
     if message.type == gst.MESSAGE_ERROR:
         error, debug = map(str, message.parse_error())
-        Logger.error('gstreamer_video: %s'%error)
-        Logger.debug('gstreamer_video: %s'%debug)
+        Logger.error('gstreamer_video: %s' % error)
+        Logger.debug('gstreamer_video: %s' % debug)
 
 
 def _on_gst_eos(obj, *largs):
@@ -119,13 +119,19 @@ class VideoGStreamer(VideoBase):
         self._texture = None
 
     def load(self):
-        Logger.debug('gstreamer_video: Load <%s>'% self._filename)
+        Logger.debug('gstreamer_video: Load <%s>' % self._filename)
         self._playbin.set_state(gst.STATE_NULL)
         self._playbin.set_property('uri', self._get_uri())
         self._playbin.set_state(gst.STATE_READY)
 
     def stop(self):
+        '''.. versionchanged:: 1.4.0'''
         self._state = ''
+        self._playbin.set_state(gst.STATE_READY)
+
+    def pause(self):
+        '''.. versionadded:: 1.4.0'''
+        self._state = 'paused'
         self._playbin.set_state(gst.STATE_PAUSED)
 
     def play(self):
@@ -151,11 +157,6 @@ class VideoGStreamer(VideoBase):
                 'http', 'https', 'file', 'udp', 'rtp', 'rtsp'):
             uri = 'file:' + pathname2url(path.realpath(uri))
         return uri
-
-    def _do_eos(self, *args):
-        self.seek(0)
-        self.dispatch('on_eos')
-        super(VideoGStreamer, self)._do_eos()
 
     def _get_position(self):
         try:

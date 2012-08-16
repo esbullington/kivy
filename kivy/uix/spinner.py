@@ -38,8 +38,7 @@ Example::
 
 __all__ = ('Spinner', 'SpinnerOption')
 
-from functools import partial
-from kivy.properties import ListProperty, ObjectProperty
+from kivy.properties import ListProperty, ObjectProperty, BooleanProperty
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivy.lang import Builder
@@ -95,12 +94,20 @@ class Spinner(Button):
     to :class:`~kivy.uix.dropdown.DropDown`.
     '''
 
+    is_open = BooleanProperty(False)
+    '''By default, the spinner is not open. Set to true to open it.
+
+    :data:`is_open` is a :class:`~kivy.properties.BooleanProperty`, default to
+    False.
+
+    .. versionadded:: 1.4.0
+    '''
+
     def __init__(self, **kwargs):
         self._dropdown = None
-        self._is_down = False
         super(Spinner, self).__init__(**kwargs)
         self.bind(
-            on_release=self._open_dropdown,
+            on_release=self._toggle_dropdown,
             dropdown_cls=self._build_dropdown,
             option_cls=self._build_dropdown,
             values=self._update_dropdown)
@@ -118,21 +125,22 @@ class Spinner(Button):
     def _update_dropdown(self, *largs):
         dp = self._dropdown
         cls = self.option_cls
-
         dp.clear_widgets()
         for value in self.values:
             item = cls(text=value)
-            item.bind(on_press=lambda option: dp.select(option.text))
+            item.bind(on_release=lambda option: dp.select(option.text))
             dp.add_widget(item)
 
-    def _open_dropdown(self, *largs):
-        if not self._is_down:
-            self._dropdown.open(self)
-            self._is_down = True
-        else:
-            self._dropdown.dismiss()
-            self._is_down = False
+    def _toggle_dropdown(self, *largs):
+        self.is_open = not self.is_open
 
     def _on_dropdown_select(self, instance, data, *largs):
         self.text = data
-        self._is_down = False
+        self.is_open = False
+
+    def on_is_open(self, instance, value):
+        if value:
+            self._dropdown.open(self)
+        else:
+            self._dropdown.dismiss()
+
